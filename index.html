@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Документация языка программирования SC: синтаксис, типы, примеры и ограничения текущего компилятора.">
+  <meta name="theme-color" content="#111827">
+  <title>SC — документация</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--text:#e5e7eb;--muted:#a9b4c8;--accent:#64d8cb;--line:#26334d;--code:#080d18}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+    a{color:var(--accent)}a:hover{text-decoration:none}.layout{display:grid;grid-template-columns:260px minmax(0,820px);gap:48px;max-width:1200px;margin:auto;padding:36px 28px}
+    aside{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px}
+    aside strong{font-size:1.25rem;color:white}nav{display:grid;gap:5px;margin-top:18px}nav a{padding:5px 8px;border-radius:7px;text-decoration:none;color:var(--muted)}nav a:hover{background:#1c2942;color:white}
+    main{min-width:0}header{padding:26px 0 34px;border-bottom:1px solid var(--line)}.badge{display:inline-block;border:1px solid #376d70;color:var(--accent);border-radius:999px;padding:3px 11px;font-size:.85rem}
+    h1{font-size:clamp(2.4rem,7vw,4.6rem);line-height:1.05;letter-spacing:-.045em;margin:20px 0 14px}h2{margin-top:54px;padding-top:15px;border-top:1px solid var(--line);font-size:1.65rem}h3{margin-top:28px;color:#f3f4f6}p,li{color:var(--muted)}strong{color:var(--text)}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#b7f7dc;background:#172238;padding:2px 5px;border-radius:5px}
+    pre{overflow:auto;background:var(--code);border:1px solid var(--line);border-radius:12px;padding:18px 20px;line-height:1.55}pre code{padding:0;background:none;color:#dbeafe}.note{border-left:3px solid var(--accent);background:var(--panel);padding:13px 17px;border-radius:0 9px 9px 0;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;display:block;overflow-x:auto}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px 12px}th{color:white}td{color:var(--muted)}.top{float:right;font-size:.9rem}
+    footer{margin-top:60px;padding:22px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+    @media(max-width:850px){.layout{display:block;padding:16px}.layout aside{position:static;max-height:none;margin-bottom:28px}nav{grid-template-columns:repeat(2,minmax(0,1fr))}header{padding-top:18px}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <strong>SC <span style="color:var(--muted);font-weight:400">/ Документация</span></strong>
+    <nav aria-label="Разделы документации">
+      <a href="#about">О проекте</a><a href="#install">Сборка</a><a href="#quickstart">Первый запуск</a>
+      <a href="#syntax">Синтаксис</a><a href="#types">Типы</a><a href="#functions">Функции</a>
+      <a href="#control">Условия и циклы</a><a href="#arrays">Массивы</a><a href="#structs">Структуры</a>
+      <a href="#modules">Импорты</a><a href="#stdlib">Библиотека</a><a href="#errors">Ошибки</a><a href="#limits">Ограничения</a>
+    </nav>
+  </aside>
+  <main>
+    <header id="about">
+      <span class="badge">Экспериментальный компилятор · версия 0.3.0</span>
+      <h1>SC</h1>
+      <p>Краткая документация по реально реализованному подмножеству языка SC. Компилятор написан на C++ и генерирует LLVM IR. Проект развивается; этот сайт не описывает незавершённые функции как готовые.</p>
+      <p><a href="https://github.com/winchestersdc79-hub/sviroxk-compiler">Исходный код компилятора на GitHub ↗</a></p>
+      <p class="note">SC пока прототип. Не используйте его для критичных или production-систем: типизированные массивы, память, диагностика и стандартная библиотека ещё имеют ограничения.</p>
+    </header>
+
+    <section id="install">
+      <h2>Сборка</h2>
+      <p>Нужны C++ compiler, LLVM development tools и команды <code>llvm-config</code>, <code>llvm-as</code>, <code>llc</code>, <code>clang</code>. В клонированном репозитории:</p>
+      <pre><code>./build.sh
+./test.sh</code></pre>
+      <p>Сборочный скрипт создаёт исполняемый файл <code>sc</code>. Для дополнительной диагностики поддерживаются переменные окружения:</p>
+      <pre><code>CXXFLAGS='-Wall -Wextra -Werror' ./build.sh
+CXXFLAGS='-Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer' \
+  ASAN_OPTIONS=detect_leaks=1 ./test.sh</code></pre>
+    </section>
+
+    <section id="quickstart">
+      <h2>Первая программа</h2>
+      <p>Создай файл <code>hello.svx</code>:</p>
+      <pre><code>print("Привет, мир!");</code></pre>
+      <p>Собери и запусти:</p>
+      <pre><code>./run.sh hello.svx</code></pre>
+      <p>CLI-компилятор печатает LLVM IR в stdout. <code>run.sh</code> вызывает LLVM assembler/backend и системный linker, затем запускает программу.</p>
+    </section>
+
+    <section id="syntax">
+      <h2>Синтаксис</h2>
+      <p>Новый стиль поддерживает <code>let</code>, <code>fn</code>, <code>return</code>, <code>print</code>, <code>if/else</code>, вызов функции по имени и комментарии <code>//</code>. Точки с запятой нужны для простых statements.</p>
+      <pre><code>fn add(int left, int right) {
+    return left + right;
+}
+
+let answer: int = add(20, 22);
+print(answer);</code></pre>
+      <p>В `examples/modern.svx` есть полный исполняемый пример.</p>
+    </section>
+
+    <section id="types">
+      <h2>Типы данных</h2>
+      <p>Обычные имена — алиасы фиксированной ширины. Целые и float-литералы проверяются на диапазон при прямом присваивании, аргументах и return.</p>
+      <table><thead><tr><th>Обычное имя</th><th>Точный алиас</th><th>LLVM storage</th></tr></thead><tbody>
+        <tr><td><code>int</code></td><td><code>i32</code></td><td>i32</td></tr><tr><td><code>uint</code></td><td><code>u32</code></td><td>i32 bits</td></tr>
+        <tr><td><code>short</code></td><td><code>i16</code></td><td>i16</td></tr><tr><td><code>ushort</code></td><td><code>u16</code></td><td>i16 bits</td></tr>
+        <tr><td><code>long</code></td><td><code>i64</code></td><td>i64</td></tr><tr><td><code>ulong</code></td><td><code>u64</code></td><td>i64 bits</td></tr>
+        <tr><td><code>byte</code></td><td><code>u8</code></td><td>i8 bits</td></tr><tr><td><code>float</code></td><td><code>f32</code></td><td>float</td></tr>
+        <tr><td><code>double</code></td><td><code>f64</code></td><td>double</td></tr><tr><td><code>bool</code>, <code>str</code>, <code>ptr</code>, <code>file</code></td><td>—</td><td>реализация ограничена backend</td></tr>
+      </tbody></table>
+      <p>Арифметика узких integer продвигается к 32 битам. Неявное смешение signed/unsigned шириной от 32 бит запрещено. Явный числовой cast записывается как <code>(i8) value</code>. Cast вычисляемого значения в более узкий тип может усечь данные; runtime checked cast не реализован.</p>
+    </section>
+
+    <section id="functions">
+      <h2>Функции</h2>
+      <p>Неаннотированная функция возвращает <code>int</code>. Тип результата указывается перед именем; процедуре пишут <code>void</code>. Non-void функции должны возвращать значение по проверяемым прямым веткам.</p>
+      <pre><code>fn int square(int value) {
+    return value * value;
+}
+
+fn void announce() {
+    print("Готово");
+}
+
+let result: int = square(7);
+print(result);
+announce();</code></pre>
+      <p>Параметры типизированы. Арность и совместимость аргументов проверяются перед генерацией LLVM.</p>
+    </section>
+
+    <section id="control">
+      <h2>Условия, логика и циклы</h2>
+      <pre><code>int count = 0;
+cert usy (count &lt; 3) {
+    count = count + 1;
+}
+
+if (count &gt;= 3 &amp;&amp; !(count == 4)) {
+    print("условие выполнено");
+} else {
+    print("иначе");
+}</code></pre>
+      <p>Доступны `&lt;`, `&gt;`, `&lt;=`, `&gt;=`, `==`, `!=`, `&&`, `||`, `!`, `+ - * / %`. У `&&` и `||` short-circuit semantics. Новые циклы пока имеют legacy-запись `cert usy (...)` и `cert ceh (...)`; `for ... in range` не реализован.</p>
+    </section>
+
+    <section id="arrays">
+      <h2>Массивы</h2>
+      <pre><code>svi rox[] lor values = [10, 20, 30];
+print(values[0]);
+values[1] = 42;
+print(values[1]);</code></pre>
+      <p>В текущем backend массивы — i32 storage. Для статических массивов чтение и запись проверяют отрицательные и верхние индексы во время выполнения. Динамические массивы через `ptr` не несут длину и bounds-check для них отсутствует.</p>
+    </section>
+
+    <section id="structs">
+      <h2>Структуры</h2>
+      <pre><code>tip Player {
+    rox health = 100;
+    rox speed = 5;
+}
+
+svi tip Player lor hero;
+hero.health = 80;
+slov(hero.health);</code></pre>
+      <p>Поддерживается legacy-объявление структуры с полями и значениями по умолчанию, создание экземпляра и доступ к полям через точку. Точные типы в aggregate storage пока не поддержаны.</p>
+    </section>
+
+    <section id="modules">
+      <h2>Импорты</h2>
+      <pre><code>imp "../stdlib/math/math.svx";
+let magnitude: long = math_abs(-17);
+print(magnitude);</code></pre>
+      <p>Пути разрешаются относительно импортирующего файла; вложенные импорты допустимы, повторные файлы загружаются один раз. Циклы и отсутствующие файлы дают ошибку. `use`, namespaces, `pub`, selective imports и отдельная компиляция модулей пока отсутствуют.</p>
+    </section>
+
+    <section id="stdlib">
+      <h2>Библиотека</h2>
+      <p>Начальный модуль находится в <code>stdlib/math/math.svx</code>. Проверены функции <code>math_abs(int) -&gt; long</code>, <code>math_min(long,long)</code>, <code>math_max(long,long)</code> и <code>math_is_even(long)</code>. Абсолютное значение минимального i32 расширяется до i64 до отрицания.</p>
+      <p>Для остальных возможностей смотри <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/docs/backlog.md">актуальный backlog</a>. Полной string/collection/fs/io/network stdlib ещё нет.</p>
+    </section>
+
+    <section id="errors">
+      <h2>Ошибки и диагностика</h2>
+      <p>Семантическая ошибка выводится с путём файла, строкой и столбцом, например <code>main.svx:4:1: error[semantic]</code>. Lexer/parser сообщают первую найденную синтаксическую ошибку и завершаются; восстановление для нескольких syntax errors пока не реализовано.</p>
+      <p>Статический массив при выходе за границы печатает runtime-сообщение с source coordinates и завершает программу с ненулевым кодом. Ошибки OOM в строковом `rep` пока завершают программу через abort.</p>
+    </section>
+
+    <section id="limits">
+      <h2>Что ещё не готово</h2>
+      <ul>
+        <li>SC — экспериментальный прототип, не стабильный production-язык.</li>
+        <li>Нет `sc build/run/test`, package manager, formatter, LSP, debugger или self-hosting.</li>
+        <li>Нет полноценной ownership/memory-safety модели; raw pointers небезопасны.</li>
+        <li>Точные числовые типы пока ограничены скалярными значениями и функциями.</li>
+        <li>Нет namespace imports, generics, enum, Option/Result, closures или methods.</li>
+        <li>Стандартная библиотека содержит только небольшой source-based math-модуль.</li>
+        <li>Арифметическое переполнение вычисляемых значений не проверяется runtime.</li>
+      </ul>
+      <p>Полный список: <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/STATUS.md">STATUS.md</a> и <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/docs/roadmap.md">roadmap</a>.</p>
+    </section>
+
+    <footer>SC documentation · автоматическая публикация из отдельного репозитория <code>doc</code> · <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler">репозиторий компилятора</a></footer>
+  </main>
+</div>
+</body>
+</html>
