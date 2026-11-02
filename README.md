@@ -1,1 +1,1 @@
-https://winchestersdc79-hub.github.io/doc
+https://winchestersdc79-hub.github.io/SC-DOC/
