@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 6f403c5). Не править руками. -->
+<!-- Файл создан gen.py из docs/spec.md компилятора. Не править руками. -->
 <div class="layout">
   <aside>
     <strong>SC <span style="color:var(--muted);font-weight:400">/ Документация</span></strong>
@@ -73,7 +73,7 @@ print(42);</code></pre>
 <pre class="example-text"><code>Привет, мир!
 42</code></pre>
 <p>Сборка и запуск: <code>./sc файл.svx &gt; файл.ll</code>, затем <code>lli файл.ll</code> или <code>llc</code> и <code>clang</code>. Код выхода компилятора: 0 — успех, 1 — синтаксическая ошибка, 2 — семантическая, 3 — внутренняя ошибка компилятора. Ошибка выполнения печатает в stderr <code>SC runtime error: &lt;что&gt; at line L, column C</code> и завершает программу с кодом 1; уже напечатанный вывод программы остаётся в stdout.</p>
-<p>Вложенность блоков, скобок и унарных операторов — не больше 256 уровней (как <code>-fbracket-depth</code> у clang); глубже — синтаксическая ошибка «слишком глубокая вложенность». В одной инструкции — не больше 250000 бинарных операторов (<code>1 + 1 + …</code>); больше — ошибка «слишком длинное выражение».</p>
+<p>Вложенность блоков, скобок и унарных операторов — не больше 256 уровней (как <code>-fbracket-depth</code> у clang); глубже — синтаксическая ошибка «слишком глубокая вложенность». В одной инструкции — не больше 250000 бинарных операторов (<code>1 + 1 + …</code>); больше — ошибка «слишком длинное выражение». Цепочка <code>if … else if …</code> — не больше 2500 звеньев <code>else if</code>; длиннее — ошибка «слишком длинная цепочка else if».</p>
 </section>
 <section id="s2">
 <h2>2. Типы</h2>
@@ -103,13 +103,13 @@ int x = 2;</code></pre>
 </section>
 <section id="s4">
 <h2>4. Операторы и политика целых</h2>
-<p>Арифметика <code>+ - * / % **</code>, целочисленное деление с округлением вниз <code>//</code>, побитовые <code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code>, сравнения <code>&lt; &gt; &lt;= &gt;= == !=</code>, логические <code>&amp;&amp; || !</code> (с коротким замыканием), тернарный <code>условие ? a : b</code>. <code>-2 ** 2</code> равно <code>-(2 ** 2)</code>. <code>%</code> для дробных — остаток как <code>fmod</code> в C (знак делимого): <code>-5.5 % 2.0</code> равно <code>-1.5</code>.</p>
+<p>Арифметика <code>+ - * / % **</code>, целочисленное деление с округлением вниз <code>div</code> (<code>-17 div 5</code> равно <code>-4</code>; <code>//</code> — всегда комментарий), побитовые <code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code>, сравнения <code>&lt; &gt; &lt;= &gt;= == !=</code>, логические <code>&amp;&amp; || !</code> (с коротким замыканием), тернарный <code>условие ? a : b</code>. <code>-2 ** 2</code> равно <code>-(2 ** 2)</code>. <code>%</code> для дробных — остаток как <code>fmod</code> в C (знак делимого): <code>-5.5 % 2.0</code> равно <code>-1.5</code>.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>print(7 / 2);
 print(7 % 3);
 print(2 ** 10);
 print(-2 ** 2);
-print(17 // 5);
+print(17 div 5);
 print(6 &amp; 3);
 print(1 &lt;&lt; 4);
 int v = 4;
@@ -224,7 +224,7 @@ print(even(10));</code></pre>
 <p class="label">Вывод</p>
 <pre class="example-text"><code>25
 1</code></pre>
-<p>Функцию можно вызвать до её определения. Объявление без тела должно совпадать с определением по типам. Функция с результатом должна возвращать значение на всех путях (бесконечный <code>loop</code> без <code>break</code> тоже считается). Вложенные функции, перегрузка и имена встроенных функций (<code>max</code>, <code>sqrt</code> …) как имена своих функций запрещены. Аргументы разделяются запятыми.</p>
+<p>Без типа результата (<code>fn show(int x) { … }</code>) функция ничего не возвращает — то же, что <code>fn void show(int x)</code>; <code>return значение;</code> в ней — ошибка компиляции. Функцию можно вызвать до её определения. Объявление без тела должно совпадать с определением по типам. Функция с результатом должна возвращать значение на всех путях (бесконечный <code>loop</code> без <code>break</code> тоже считается). Вложенные функции, перегрузка и имена встроенных функций (<code>max</code>, <code>sqrt</code> …) как имена своих функций запрещены. Аргументы разделяются запятыми.</p>
 </section>
 <section id="s7">
 <h2>7. Структуры</h2>
@@ -259,7 +259,7 @@ print(a[0] + a[1] + a[2]);</code></pre>
 <pre class="example-sc-error"><code>u8[] b = [10, 300];</code></pre>
 <p class="label">Ошибка (часть сообщения)</p>
 <pre class="example-text"><code>элемент массива 300 вне диапазона типа &#x27;byte/u8&#x27;</code></pre>
-<p>Динамический массив создаётся <code>new T[n]</code>: длина <code>n</code>, элементы равны нулю. Отрицательный <code>n</code> (в <code>new</code> и <code>resize</code>) или размер, под который не хватает памяти, — ошибка выполнения. <code>resize(n)</code> с большей длиной заполняет новые элементы нулями. Методы: <code>push(x)</code>, <code>pop()</code> (возвращает элемент, у пустого — 0), <code>resize(n)</code>, <code>len()</code>, <code>cap()</code>.</p>
+<p>Динамический массив создаётся <code>new T[n]</code>: длина <code>n</code>, элементы равны нулю. Отрицательный <code>n</code> (в <code>new</code> и <code>resize</code>) или размер, под который не хватает памяти, — ошибка выполнения. <code>resize(n)</code> с большей длиной заполняет новые элементы нулями. Методы: <code>push(x)</code>, <code>pop()</code> (возвращает элемент, у пустого — 0), <code>resize(n)</code>, <code>len()</code>, <code>cap()</code>. У статического массива есть только <code>len()</code> и <code>cap()</code> — оба возвращают его длину.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>ptr v = new int[2];
 v[0] = 4;
@@ -320,7 +320,7 @@ drop v;
 print(v[0]);</code></pre>
 <p class="label">Ошибка (часть сообщения)</p>
 <pre class="example-text"><code>&#x27;v&#x27; используется после drop (строка 2)</code></pre>
-<p><code>del p;</code> освобождает память по указателю без проверок (ручной режим).</p>
+<p><code>del p;</code> освобождает память по указателю (ручной режим). Как после <code>drop</code>, имя <code>p</code> дальше использовать нельзя, повторный <code>del p;</code> — ошибка компиляции; новое присваивание <code>p = new int[2];</code> снова делает имя пригодным. Второе имя на ту же память (<code>ptr q = p;</code>) не отслеживается. Статический массив (<code>int[] a = [1, 2];</code>) освобождается сам: <code>del a;</code> для него — ошибка компиляции «освобождать нечего».</p>
 </section>
 <section id="s11">
 <h2>11. Строки</h2>
@@ -359,7 +359,7 @@ SC</code></pre>
 </section>
 <section id="s13">
 <h2>13. Файлы</h2>
-<p><code>open(путь, режим)</code> открывает файл (<code>&quot;w&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;a&quot;</code>; не открылся — ошибка выполнения), <code>write(f, строка)</code> пишет, <code>read(f)</code> читает следующую строку целиком (без <code>\n</code>; в конце файла — пустую строку), <code>close(f)</code> или <code>drop f</code> закрывает; после этого <code>f</code> использовать нельзя (ошибка компиляции, как после <code>drop</code>).</p>
+<p><code>open(путь, режим)</code> открывает файл (<code>&quot;w&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;a&quot;</code>; не открылся — ошибка выполнения; режим обязателен, <code>open(путь)</code> — ошибка компиляции), <code>write(f, строка)</code> пишет, <code>read(f)</code> читает следующую строку целиком (без <code>\n</code>; в конце файла — пустую строку), <code>close(f)</code> или <code>drop f</code> закрывает; после этого <code>f</code> использовать нельзя (ошибка компиляции, как после <code>drop</code>).</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>file out = open(&quot;spec-file.txt&quot;, &quot;w&quot;);
 write(out, &quot;строка&quot;);
@@ -376,7 +376,7 @@ close(inp);</code></pre>
 </section>
 <section id="s15">
 <h2>15. Встроенные функции</h2>
-<p><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>max(a, b)</code>, <code>min(a, b)</code>, <code>floor</code> (вниз), <code>ceil</code> (вверх), <code>round</code> (округление), <code>rand()</code> (случайное целое), <code>len</code>, <code>replace</code>, <code>str</code>. Эти имена зарезервированы: так нельзя назвать свою функцию или переменную.</p>
+<p><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>max(a, b)</code>, <code>min(a, b)</code>, <code>floor</code> (вниз), <code>ceil</code> (вверх), <code>round</code> (округление), <code>rand()</code> (случайное целое), <code>len</code>, <code>replace</code>, <code>str</code>. <code>sqrt</code>, <code>floor</code>, <code>ceil</code>, <code>round</code> от целого аргумента дают <code>f64</code> (<code>sqrt(2)</code> — <code>1.414214</code>). <code>pow(a, b)</code> от двух целых — целое, то же, что <code>a ** b</code>: выход за тип — <code>integer overflow</code>; если хотя бы один аргумент дробный — <code>f64</code>. Этими именами можно назвать свою переменную и свою функцию (как в C++ и Rust): своя функция <code>fn int max(int a, int b)</code> заменяет встроенную во всей программе, вызов <code>max(…)</code> идёт в неё. Ключевые слова и имена типов зарезервированы.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>print(max(3, 7));
 print(min(3, 7));
@@ -405,9 +405,9 @@ print(sqrt(16.0));</code></pre>
 </section>
 <section id="s17">
 <h2>17. Известные ограничения</h2>
-<ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, сравнения <code>&lt;</code> и <code>&gt;</code>, работы с Unicode.</li></ul>
+<ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Адрес массива (<code>&amp;a</code>) взять нельзя — ошибка компиляции.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, сравнения <code>&lt;</code> и <code>&gt;</code>, работы с Unicode.</li></ul>
 </section>
-    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>6f403c5</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
+    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
   </main>
 </div>
 </body>
