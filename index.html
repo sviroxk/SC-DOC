@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 1f4c99e). Не править руками. -->
+<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 35bb3aa). Не править руками. -->
 <div class="layout">
   <aside>
     <strong>SC <span style="color:var(--muted);font-weight:400">/ Документация</span></strong>
@@ -72,12 +72,13 @@ print(42);</code></pre>
 <p class="label">Вывод</p>
 <pre class="example-text"><code>Привет, мир!
 42</code></pre>
-<p>Сборка и запуск: <code>./sc файл.svx &gt; файл.ll</code>, затем <code>lli файл.ll</code> или <code>llc</code> и <code>clang</code>. Код выхода компилятора: 0 — успех, 1 — синтаксическая ошибка, 2 — семантическая, 3 — внутренняя ошибка компилятора. Ошибка выполнения печатает <code>SC runtime error: &lt;что&gt; at line L, column C</code> и завершает программу с кодом 1.</p>
+<p>Сборка и запуск: <code>./sc файл.svx &gt; файл.ll</code>, затем <code>lli файл.ll</code> или <code>llc</code> и <code>clang</code>. Код выхода компилятора: 0 — успех, 1 — синтаксическая ошибка, 2 — семантическая, 3 — внутренняя ошибка компилятора. Ошибка выполнения печатает в stderr <code>SC runtime error: &lt;что&gt; at line L, column C</code> и завершает программу с кодом 1; уже напечатанный вывод программы остаётся в stdout.</p>
+<p>Вложенность блоков, скобок и унарных операторов — не больше 256 уровней (как <code>-fbracket-depth</code> у clang); глубже — синтаксическая ошибка «слишком глубокая вложенность». В одной инструкции — не больше 10000 бинарных операторов (<code>1 + 1 + …</code>); больше — ошибка «слишком длинное выражение».</p>
 </section>
 <section id="s2">
 <h2>2. Типы</h2>
 <table><thead><tr><th>Тип</th><th>Короткое имя</th><th>Что это</th></tr></thead><tbody><tr><td><code>i8</code> <code>i16</code> <code>i32</code> <code>i64</code></td><td><code>short</code> = i16, <code>int</code> = i32, <code>long</code> = i64</td><td>знаковые целые</td></tr><tr><td><code>u8</code> <code>u16</code> <code>u32</code> <code>u64</code></td><td><code>byte</code> = u8, <code>ushort</code> = u16, <code>uint</code> = u32, <code>ulong</code> = u64</td><td>беззнаковые целые</td></tr><tr><td><code>f32</code> <code>f64</code></td><td><code>float</code> = f32, <code>double</code> = f64</td><td>числа с плавающей точкой</td></tr><tr><td><code>bool</code></td><td></td><td><code>true</code> / <code>false</code></td></tr><tr><td><code>char</code></td><td></td><td>символ <code>&#x27;a&#x27;</code>, в арифметике ведёт себя как <code>u8</code></td></tr><tr><td><code>str</code></td><td><code>string</code></td><td>строка</td></tr><tr><td><code>ptr</code></td><td></td><td>указатель или динамический массив</td></tr><tr><td><code>file</code></td><td></td><td>открытый файл</td></tr><tr><td><code>Имя</code> (структура)</td><td></td><td>объявляется через <code>struct</code></td></tr><tr><td><code>void</code></td><td></td><td>«нет значения», только тип результата функции</td></tr></tbody></table>
-<p>Точные имена (<code>i32</code>, <code>f64</code> …) — основные, короткие — их алиасы. Целые литералы по умолчанию имеют тип <code>i32</code>, дробные — <code>f64</code>. Литералы: <code>42</code>, <code>0x2A</code>, <code>0b101010</code>, <code>1_000</code>, <code>1.5</code>, <code>2e3</code>, <code>&#x27;a&#x27;</code>, <code>&quot;текст&quot;</code>.</p>
+<p>Точные имена (<code>i32</code>, <code>f64</code> …) — основные, короткие — их алиасы. Целые литералы по умолчанию имеют тип <code>i32</code> (если значение не помещается в <code>i32</code> — тип <code>i64</code>), дробные — <code>f64</code>. Литералы: <code>42</code>, <code>0x2A</code>, <code>0b101010</code>, <code>1_000</code>, <code>1.5</code>, <code>2e3</code>, <code>&#x27;a&#x27;</code>, <code>&quot;текст&quot;</code>.</p>
 </section>
 <section id="s3">
 <h2>3. Переменные</h2>
@@ -102,7 +103,7 @@ int x = 2;</code></pre>
 </section>
 <section id="s4">
 <h2>4. Операторы и политика целых</h2>
-<p>Арифметика <code>+ - * / % **</code>, целочисленное деление с округлением вниз <code>//</code>, побитовые <code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code>, сравнения <code>&lt; &gt; &lt;= &gt;= == !=</code>, логические <code>&amp;&amp; || !</code> (с коротким замыканием), тернарный <code>условие ? a : b</code>. <code>-2 ** 2</code> равно <code>-(2 ** 2)</code>.</p>
+<p>Арифметика <code>+ - * / % **</code>, целочисленное деление с округлением вниз <code>//</code>, побитовые <code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code>, сравнения <code>&lt; &gt; &lt;= &gt;= == !=</code>, логические <code>&amp;&amp; || !</code> (с коротким замыканием), тернарный <code>условие ? a : b</code>. <code>-2 ** 2</code> равно <code>-(2 ** 2)</code>. <code>%</code> для дробных — остаток как <code>fmod</code> в C (знак делимого): <code>-5.5 % 2.0</code> равно <code>-1.5</code>.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>print(7 / 2);
 print(7 % 3);
@@ -122,8 +123,21 @@ print(v &gt; 3 ? 10 : 20);</code></pre>
 2
 16
 10</code></pre>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>f64 x = 5.5;
+print(x % 2.0);
+print(-5.5 % 2.0);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>1.500000
+-1.500000</code></pre>
 <p><strong>Значение молча не портится.</strong> Для целых:</p>
 <ul><li>переполнение <code>+ - * **</code>, унарного минуса, <code>MIN / -1</code> — ошибка выполнения <code>integer overflow</code>;</li><li>деление и остаток на ноль — <code>division by zero</code>;</li><li>сдвиг на число вне <code>0..ширина-1</code> — <code>shift amount out of range</code>;</li><li>если такое видно из констант, это ошибка компиляции;</li><li>запись результата в узкий тип (<code>u8 x; x += 1;</code>) проверяет диапазон.</li></ul>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>print(-9223372036854775807 - 1);
+print(5000000000 * 2);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>-9223372036854775808
+10000000000</code></pre>
 <p class="label">Не компилируется</p>
 <pre class="example-sc-error"><code>print(2147483647 + 1);</code></pre>
 <p class="label">Ошибка (часть сообщения)</p>
@@ -233,7 +247,7 @@ print(value.a);</code></pre>
 </section>
 <section id="s8">
 <h2>8. Массивы</h2>
-<p>Статический массив имеет фиксированную длину; индекс проверяется (константный — при компиляции, остальные — при выполнении).</p>
+<p>Статический массив имеет фиксированную длину; индекс проверяется (константный — при компиляции, остальные — при выполнении). Константа в литерале массива должна помещаться в тип элемента.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>int[] a = [1, 2, 3];
 a[0] = 10;
@@ -241,7 +255,11 @@ a[1] += 5;
 print(a[0] + a[1] + a[2]);</code></pre>
 <p class="label">Вывод</p>
 <pre class="example-text"><code>20</code></pre>
-<p>Динамический массив создаётся <code>new T[n]</code>: длина <code>n</code>, элементы равны нулю. Методы: <code>push(x)</code>, <code>pop()</code> (возвращает элемент, у пустого — 0), <code>resize(n)</code>, <code>len()</code>, <code>cap()</code>.</p>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>u8[] b = [10, 300];</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>элемент массива 300 вне диапазона типа &#x27;byte/u8&#x27;</code></pre>
+<p>Динамический массив создаётся <code>new T[n]</code>: длина <code>n</code>, элементы равны нулю. Отрицательный <code>n</code> (в <code>new</code> и <code>resize</code>) или размер, под который не хватает памяти, — ошибка выполнения. <code>resize(n)</code> с большей длиной заполняет новые элементы нулями. Методы: <code>push(x)</code>, <code>pop()</code> (возвращает элемент, у пустого — 0), <code>resize(n)</code>, <code>len()</code>, <code>cap()</code>.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>ptr v = new int[2];
 v[0] = 4;
@@ -264,7 +282,7 @@ print(g(v));</code></pre>
 </section>
 <section id="s9">
 <h2>9. Указатели и <code>null</code></h2>
-<p><code>&amp;x</code> — адрес переменной, <code>*p</code> — значение по адресу, <code>null</code> — пустой указатель (допустим только для <code>ptr</code>). Разыменование <code>null</code> — ошибка выполнения <code>null pointer dereference</code>. Указатели сравниваются только через <code>==</code> и <code>!=</code>.</p>
+<p><code>&amp;x</code> — адрес переменной, <code>*p</code> — значение по адресу, <code>null</code> — пустой указатель (допустим только для <code>ptr</code>). Разыменование <code>null</code> — ошибка выполнения <code>null pointer dereference</code>. Указатели сравниваются только через <code>==</code> и <code>!=</code>. Вернуть из функции адрес её локальной переменной или параметра (<code>return &amp;x;</code>, а также <code>ptr p = &amp;x; return p;</code>) — ошибка компиляции.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>int x = 5;
 ptr p = &amp;x;
@@ -326,7 +344,7 @@ a+b
 </section>
 <section id="s12">
 <h2>12. Ввод</h2>
-<p><code>input_int(&quot;подсказка&quot;)</code> читает число, <code>input_str(&quot;подсказка&quot;)</code> — строку.</p>
+<p><code>input_int(&quot;подсказка&quot;)</code> читает число, <code>input_str(&quot;подсказка&quot;)</code> — строку. Оба читают ввод по строкам: одна строка целиком, любой длины (без обрезки), без завершающего <code>\n</code> и <code>\r</code>. <code>input_int</code> принимает в строке одно целое (пробелы по краям допустимы); мусор (<code>12abc</code>), число вне <code>int</code> или конец ввода — ошибка выполнения (<code>SC runtime error</code>). <code>input_str</code> в конце ввода возвращает пустую строку.</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>int n = input_int(&quot;&quot;);
 string name = input_str(&quot;&quot;);
@@ -341,7 +359,7 @@ SC</code></pre>
 </section>
 <section id="s13">
 <h2>13. Файлы</h2>
-<p><code>open(путь, режим)</code> открывает файл (<code>&quot;w&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;a&quot;</code>; не открылся — ошибка выполнения), <code>write(f, строка)</code> пишет, <code>read(f)</code> читает строку, <code>close(f)</code> или <code>drop f</code> закрывает.</p>
+<p><code>open(путь, режим)</code> открывает файл (<code>&quot;w&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;a&quot;</code>; не открылся — ошибка выполнения), <code>write(f, строка)</code> пишет, <code>read(f)</code> читает следующую строку целиком (без <code>\n</code>; в конце файла — пустую строку), <code>close(f)</code> или <code>drop f</code> закрывает; после этого <code>f</code> использовать нельзя (ошибка компиляции, как после <code>drop</code>).</p>
 <p class="label">Программа</p>
 <pre class="example-sc"><code>file out = open(&quot;spec-file.txt&quot;, &quot;w&quot;);
 write(out, &quot;строка&quot;);
@@ -387,9 +405,9 @@ print(sqrt(16.0));</code></pre>
 </section>
 <section id="s17">
 <h2>17. Известные ограничения</h2>
-<ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, <code>==</code>, работы с Unicode.</li></ul>
+<ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, сравнения <code>&lt;</code> и <code>&gt;</code>, работы с Unicode.</li></ul>
 </section>
-    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>1f4c99e</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
+    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>35bb3aa</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
   </main>
 </div>
 </body>
