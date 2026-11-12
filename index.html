@@ -22,7 +22,7 @@
   </style>
 </head>
 <body>
-<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 35bb3aa). Не править руками. -->
+<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 6f403c5). Не править руками. -->
 <div class="layout">
   <aside>
     <strong>SC <span style="color:var(--muted);font-weight:400">/ Документация</span></strong>
@@ -73,7 +73,7 @@ print(42);</code></pre>
 <pre class="example-text"><code>Привет, мир!
 42</code></pre>
 <p>Сборка и запуск: <code>./sc файл.svx &gt; файл.ll</code>, затем <code>lli файл.ll</code> или <code>llc</code> и <code>clang</code>. Код выхода компилятора: 0 — успех, 1 — синтаксическая ошибка, 2 — семантическая, 3 — внутренняя ошибка компилятора. Ошибка выполнения печатает в stderr <code>SC runtime error: &lt;что&gt; at line L, column C</code> и завершает программу с кодом 1; уже напечатанный вывод программы остаётся в stdout.</p>
-<p>Вложенность блоков, скобок и унарных операторов — не больше 256 уровней (как <code>-fbracket-depth</code> у clang); глубже — синтаксическая ошибка «слишком глубокая вложенность». В одной инструкции — не больше 10000 бинарных операторов (<code>1 + 1 + …</code>); больше — ошибка «слишком длинное выражение».</p>
+<p>Вложенность блоков, скобок и унарных операторов — не больше 256 уровней (как <code>-fbracket-depth</code> у clang); глубже — синтаксическая ошибка «слишком глубокая вложенность». В одной инструкции — не больше 250000 бинарных операторов (<code>1 + 1 + …</code>); больше — ошибка «слишком длинное выражение».</p>
 </section>
 <section id="s2">
 <h2>2. Типы</h2>
@@ -407,7 +407,7 @@ print(sqrt(16.0));</code></pre>
 <h2>17. Известные ограничения</h2>
 <ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, сравнения <code>&lt;</code> и <code>&gt;</code>, работы с Unicode.</li></ul>
 </section>
-    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>35bb3aa</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
+    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>6f403c5</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
   </main>
 </div>
 </body>
