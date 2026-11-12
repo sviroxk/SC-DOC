@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Документация языка программирования SC: синтаксис, типы, примеры и ограничения текущего компилятора.">
+  <meta name="description" content="Документация языка программирования SC: типы, операторы, функции, структуры, массивы, примеры и ограничения текущего компилятора.">
   <meta name="theme-color" content="#111827">
   <title>SC — документация</title>
   <style>
-    :root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--text:#e5e7eb;--muted:#a9b4c8;--accent:#64d8cb;--line:#26334d;--code:#080d18}
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121a2d;--text:#e5e7eb;--muted:#a9b4c8;--accent:#64d8cb;--line:#26334d;--code:#080d18}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
     a{color:var(--accent)}a:hover{text-decoration:none}.layout{display:grid;grid-template-columns:260px minmax(0,820px);gap:48px;max-width:1200px;margin:auto;padding:36px 28px}
     aside{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px}
@@ -18,162 +18,378 @@
     table{width:100%;border-collapse:collapse;display:block;overflow-x:auto}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px 12px}th{color:white}td{color:var(--muted)}.top{float:right;font-size:.9rem}
     footer{margin-top:60px;padding:22px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
     @media(max-width:850px){.layout{display:block;padding:16px}.layout aside{position:static;max-height:none;margin-bottom:28px}nav{grid-template-columns:repeat(2,minmax(0,1fr))}header{padding-top:18px}}
+    .label{margin:18px 0 -8px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}pre.example-text code{color:#d1fae5}pre.example-sc-error{border-color:#7f1d1d}pre.example-stdin code{color:#fde68a}
   </style>
 </head>
 <body>
+<!-- Файл создан gen.py из docs/spec.md компилятора (коммит 1f4c99e). Не править руками. -->
 <div class="layout">
   <aside>
     <strong>SC <span style="color:var(--muted);font-weight:400">/ Документация</span></strong>
     <nav aria-label="Разделы документации">
-      <a href="#about">О проекте</a><a href="#install">Сборка</a><a href="#quickstart">Первый запуск</a>
-      <a href="#syntax">Синтаксис</a><a href="#types">Типы</a><a href="#functions">Функции</a>
-      <a href="#control">Условия и циклы</a><a href="#arrays">Массивы</a><a href="#structs">Структуры</a>
-      <a href="#modules">Импорты</a><a href="#stdlib">Библиотека</a><a href="#errors">Ошибки</a><a href="#limits">Ограничения</a>
+<a href="#about">О проекте</a><a href="#build">Сборка</a>
+<a href="#s1">1. Программа</a>
+<a href="#s2">2. Типы</a>
+<a href="#s3">3. Переменные</a>
+<a href="#s4">4. Операторы и политика целых</a>
+<a href="#s5">5. Условия и циклы</a>
+<a href="#s6">6. Функции</a>
+<a href="#s7">7. Структуры</a>
+<a href="#s8">8. Массивы</a>
+<a href="#s9">9. Указатели и <code>null</code></a>
+<a href="#s10">10. <code>defer</code> и <code>drop</code></a>
+<a href="#s11">11. Строки</a>
+<a href="#s12">12. Ввод</a>
+<a href="#s13">13. Файлы</a>
+<a href="#s14">14. Импорт</a>
+<a href="#s15">15. Встроенные функции</a>
+<a href="#s16">16. Удалённые слова</a>
+<a href="#s17">17. Известные ограничения</a>
     </nav>
   </aside>
   <main>
     <header id="about">
       <span class="badge">Экспериментальный компилятор · версия 0.3.0</span>
       <h1>SC</h1>
-      <p>Краткая документация по реально реализованному подмножеству языка SC. Компилятор написан на C++ и генерирует LLVM IR. Проект развивается; этот сайт не описывает незавершённые функции как готовые.</p>
-      <p><a href="https://github.com/sviroxk/sviroxk-compiler">Исходный код компилятора на GitHub ↗</a></p>
-      <p class="note">SC пока прототип. Не используйте его для критичных или production-систем: типизированные массивы, память, диагностика и стандартная библиотека ещё имеют ограничения.</p>
+      <p>Язык SC и его компилятор: C++ и LLVM, на выходе LLVM IR. Эта страница собрана из спецификации языка (<code>docs/spec.md</code>). Каждый пример на ней компилируется и запускается тестами компилятора, и его вывод сверяется с блоком «Вывод».</p>
+      <p><a href="https://github.com/sviroxk/sviroxk-compiler">Исходный код компилятора на GitHub ↗</a> · <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">спецификация</a></p>
+      <p class="note">SC пока прототип. Что ещё не сделано — в разделе «Известные ограничения».</p>
     </header>
-
-    <section id="install">
+    <section id="build">
       <h2>Сборка</h2>
-      <p>Нужны C++ compiler, LLVM development tools и команды <code>llvm-config</code>, <code>llvm-as</code>, <code>llc</code>, <code>clang</code>. В клонированном репозитории:</p>
+      <p>Нужен C++ компилятор и LLVM 18 (<code>llvm-config</code>). В клонированном репозитории:</p>
       <pre><code>./build.sh
-./test.sh</code></pre>
-      <p>Сборочный скрипт создаёт исполняемый файл <code>sc</code>. Для дополнительной диагностики поддерживаются переменные окружения:</p>
-      <pre><code>CXXFLAGS='-Wall -Wextra -Werror' ./build.sh
-CXXFLAGS='-Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer' \
-  ASAN_OPTIONS=detect_leaks=1 ./test.sh</code></pre>
+./test.sh
+timeout 10 ./sc hello.svx &gt; hello.ll &amp;&amp; lli hello.ll</code></pre>
     </section>
-
-    <section id="quickstart">
-      <h2>Первая программа</h2>
-      <p>Создай файл <code>hello.svx</code>:</p>
-      <pre><code>print("Привет, мир!");</code></pre>
-      <p>Собери и запусти:</p>
-      <pre><code>./run.sh hello.svx</code></pre>
-      <p>CLI-компилятор печатает LLVM IR в stdout. <code>run.sh</code> вызывает LLVM assembler/backend и системный linker, затем запускает программу.</p>
-    </section>
-
-    <section id="syntax">
-      <h2>Синтаксис</h2>
-      <p>Новый стиль поддерживает <code>let</code>, <code>fn</code>, <code>return</code>, <code>print</code>, <code>if/else</code>, вызов функции по имени и комментарии <code>//</code>. Точки с запятой нужны для простых statements.</p>
-      <pre><code>fn add(int left, int right) {
-    return left + right;
-}
-
-let answer: int = add(20, 22);
-print(answer);</code></pre>
-      <p>В `examples/modern.svx` есть полный исполняемый пример.</p>
-    </section>
-
-    <section id="types">
-      <h2>Типы данных</h2>
-      <p>Обычные имена — алиасы фиксированной ширины. Целые и float-литералы проверяются на диапазон при прямом присваивании, аргументах и return.</p>
-      <table><thead><tr><th>Обычное имя</th><th>Точный алиас</th><th>LLVM storage</th></tr></thead><tbody>
-        <tr><td><code>int</code></td><td><code>i32</code></td><td>i32</td></tr><tr><td><code>uint</code></td><td><code>u32</code></td><td>i32 bits</td></tr>
-        <tr><td><code>short</code></td><td><code>i16</code></td><td>i16</td></tr><tr><td><code>ushort</code></td><td><code>u16</code></td><td>i16 bits</td></tr>
-        <tr><td><code>long</code></td><td><code>i64</code></td><td>i64</td></tr><tr><td><code>ulong</code></td><td><code>u64</code></td><td>i64 bits</td></tr>
-        <tr><td><code>byte</code></td><td><code>u8</code></td><td>i8 bits</td></tr><tr><td><code>float</code></td><td><code>f32</code></td><td>float</td></tr>
-        <tr><td><code>double</code></td><td><code>f64</code></td><td>double</td></tr><tr><td><code>bool</code>, <code>str</code>, <code>ptr</code>, <code>file</code></td><td>—</td><td>реализация ограничена backend</td></tr>
-      </tbody></table>
-      <p>Арифметика узких integer продвигается к 32 битам. Неявное смешение signed/unsigned шириной от 32 бит запрещено. Явный числовой cast записывается как <code>(i8) value</code>. Cast вычисляемого значения в более узкий тип может усечь данные; runtime checked cast не реализован.</p>
-    </section>
-
-    <section id="functions">
-      <h2>Функции</h2>
-      <p>Неаннотированная функция возвращает <code>int</code>. Тип результата указывается перед именем; процедуре пишут <code>void</code>. Non-void функции должны возвращать значение по проверяемым прямым веткам.</p>
-      <pre><code>fn int square(int value) {
-    return value * value;
-}
-
-fn void announce() {
-    print("Готово");
-}
-
-let result: int = square(7);
-print(result);
-announce();</code></pre>
-      <p>Параметры типизированы. Арность и совместимость аргументов проверяются перед генерацией LLVM.</p>
-    </section>
-
-    <section id="control">
-      <h2>Условия, логика и циклы</h2>
-      <pre><code>int count = 0;
-while (count &lt; 3) {
-    count = count + 1;
-}
-
-if (count &gt;= 3 &amp;&amp; !(count == 4)) {
-    print("условие выполнено");
+<section id="s1">
+<h2>1. Программа</h2>
+<p>Файл <code>.svx</code> — это последовательность объявлений и операторов. Код верхнего уровня выполняется сверху вниз, отдельная функция <code>main</code> не нужна (имя <code>main</code> занято). Комментарии: <code>// до конца строки</code>. Оператор заканчивается <code>;</code>.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>// вывод
+print(&quot;Привет, мир!&quot;);
+print(42);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>Привет, мир!
+42</code></pre>
+<p>Сборка и запуск: <code>./sc файл.svx &gt; файл.ll</code>, затем <code>lli файл.ll</code> или <code>llc</code> и <code>clang</code>. Код выхода компилятора: 0 — успех, 1 — синтаксическая ошибка, 2 — семантическая, 3 — внутренняя ошибка компилятора. Ошибка выполнения печатает <code>SC runtime error: &lt;что&gt; at line L, column C</code> и завершает программу с кодом 1.</p>
+</section>
+<section id="s2">
+<h2>2. Типы</h2>
+<table><thead><tr><th>Тип</th><th>Короткое имя</th><th>Что это</th></tr></thead><tbody><tr><td><code>i8</code> <code>i16</code> <code>i32</code> <code>i64</code></td><td><code>short</code> = i16, <code>int</code> = i32, <code>long</code> = i64</td><td>знаковые целые</td></tr><tr><td><code>u8</code> <code>u16</code> <code>u32</code> <code>u64</code></td><td><code>byte</code> = u8, <code>ushort</code> = u16, <code>uint</code> = u32, <code>ulong</code> = u64</td><td>беззнаковые целые</td></tr><tr><td><code>f32</code> <code>f64</code></td><td><code>float</code> = f32, <code>double</code> = f64</td><td>числа с плавающей точкой</td></tr><tr><td><code>bool</code></td><td></td><td><code>true</code> / <code>false</code></td></tr><tr><td><code>char</code></td><td></td><td>символ <code>&#x27;a&#x27;</code>, в арифметике ведёт себя как <code>u8</code></td></tr><tr><td><code>str</code></td><td><code>string</code></td><td>строка</td></tr><tr><td><code>ptr</code></td><td></td><td>указатель или динамический массив</td></tr><tr><td><code>file</code></td><td></td><td>открытый файл</td></tr><tr><td><code>Имя</code> (структура)</td><td></td><td>объявляется через <code>struct</code></td></tr><tr><td><code>void</code></td><td></td><td>«нет значения», только тип результата функции</td></tr></tbody></table>
+<p>Точные имена (<code>i32</code>, <code>f64</code> …) — основные, короткие — их алиасы. Целые литералы по умолчанию имеют тип <code>i32</code>, дробные — <code>f64</code>. Литералы: <code>42</code>, <code>0x2A</code>, <code>0b101010</code>, <code>1_000</code>, <code>1.5</code>, <code>2e3</code>, <code>&#x27;a&#x27;</code>, <code>&quot;текст&quot;</code>.</p>
+</section>
+<section id="s3">
+<h2>3. Переменные</h2>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>int a = 1;          // тип и значение
+let b = 2;          // тип выводится из значения
+let c: i64 = 3;     // let с явным типом
+const d: int = 4;   // константа
+int e = 5;  // старая форма объявления, работает так же
+a = a + b;
+a += c;             // составные: += -= *= /= %=
+a++;
+print(a + d + e);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>16</code></pre>
+<p>Имена видны в своём блоке <code>{ }</code> и во вложенных. Внутренний блок может объявить то же имя заново (затенение). Использовать переменную до присваивания нельзя.</p>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>int x = 1;
+int x = 2;</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>повторное объявление &#x27;x&#x27;</code></pre>
+</section>
+<section id="s4">
+<h2>4. Операторы и политика целых</h2>
+<p>Арифметика <code>+ - * / % **</code>, целочисленное деление с округлением вниз <code>//</code>, побитовые <code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code>, сравнения <code>&lt; &gt; &lt;= &gt;= == !=</code>, логические <code>&amp;&amp; || !</code> (с коротким замыканием), тернарный <code>условие ? a : b</code>. <code>-2 ** 2</code> равно <code>-(2 ** 2)</code>.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>print(7 / 2);
+print(7 % 3);
+print(2 ** 10);
+print(-2 ** 2);
+print(17 // 5);
+print(6 &amp; 3);
+print(1 &lt;&lt; 4);
+int v = 4;
+print(v &gt; 3 ? 10 : 20);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>3
+1
+1024
+-4
+3
+2
+16
+10</code></pre>
+<p><strong>Значение молча не портится.</strong> Для целых:</p>
+<ul><li>переполнение <code>+ - * **</code>, унарного минуса, <code>MIN / -1</code> — ошибка выполнения <code>integer overflow</code>;</li><li>деление и остаток на ноль — <code>division by zero</code>;</li><li>сдвиг на число вне <code>0..ширина-1</code> — <code>shift amount out of range</code>;</li><li>если такое видно из констант, это ошибка компиляции;</li><li>запись результата в узкий тип (<code>u8 x; x += 1;</code>) проверяет диапазон.</li></ul>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>print(2147483647 + 1);</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>переполнение: значение константного выражения 2147483648 не помещается в тип &#x27;int/i32&#x27;</code></pre>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>int a = 5;
+print(a / 0);</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>деление на ноль</code></pre>
+<p>Арифметика над <code>i8</code>/<code>u8</code>/<code>i16</code>/<code>u16</code>/<code>char</code> выполняется в <code>i32</code>.</p>
+<h3>Преобразования</h3>
+<p>Неявно разрешено только то, что не теряет значение: расширение целого той же знаковости, беззнаковое → более широкое знаковое, <code>f32</code> → <code>f64</code>, любое целое → <code>f64</code>, целое до 16 бит → <code>f32</code>. Константа, которая точно помещается в тип, тоже разрешена (<code>u8 b = 200;</code>). Остальное требует явного приведения <code>(T) x</code>. Явное приведение проверяет диапазон: константа вне <code>T</code> — ошибка компиляции, значение во время выполнения — <code>value out of range for type &#x27;T&#x27;</code>.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>i64 big = 5000000000;
+int small = 7;
+i64 wide = small;
+f64 f = 3.75;
+print((int) f);
+print(wide);
+print((i64) big + 1);
+u8 b = 200;
+print(b);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>3
+7
+5000000001
+200</code></pre>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>i64 a = 1;
+int b = a;</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>нужно явное приведение</code></pre>
+</section>
+<section id="s5">
+<h2>5. Условия и циклы</h2>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>int x = 3;
+if (x == 1) {
+    print(1);
+} else if (x == 3) {
+    print(3);
 } else {
-    print("иначе");
-}</code></pre>
-      <p>Доступны `&lt;`, `&gt;`, `&lt;=`, `&gt;=`, `==`, `!=`, `&&`, `||`, `!`, `+ - * / %`. У `&&` и `||` short-circuit semantics. Циклы: `while (условие)`, `repeat (n)` — повторить n раз, `for i in 0..n`.</p>
-    </section>
-
-    <section id="arrays">
-      <h2>Массивы</h2>
-      <pre><code>int[] values = [10, 20, 30];
-print(values[0]);
-values[1] = 42;
-print(values[1]);</code></pre>
-      <p>В текущем backend массивы — i32 storage. Для статических массивов чтение и запись проверяют отрицательные и верхние индексы во время выполнения. Динамические массивы через `ptr` не несут длину и bounds-check для них отсутствует.</p>
-    </section>
-
-    <section id="structs">
-      <h2>Структуры</h2>
-      <pre><code>struct Player {
-    int health = 100;
-    int speed = 5;
+    print(0);
 }
-
-Player hero;
-hero.health = 80;
-print(hero.health);</code></pre>
-      <p>Поддерживается объявление структуры с полями и значениями по умолчанию, создание экземпляра и доступ к полям через точку. Точные типы в aggregate storage пока не поддержаны.</p>
-    </section>
-
-    <section id="modules">
-      <h2>Импорты</h2>
-      <pre><code>import "../stdlib/math/math.svx";
-let magnitude: long = math_abs(-17);
-print(magnitude);</code></pre>
-      <p>Пути разрешаются относительно импортирующего файла; вложенные импорты допустимы, повторные файлы загружаются один раз. Циклы и отсутствующие файлы дают ошибку. `use`, namespaces, `pub`, selective imports и отдельная компиляция модулей пока отсутствуют.</p>
-    </section>
-
-    <section id="stdlib">
-      <h2>Библиотека</h2>
-      <p>Начальный модуль находится в <code>stdlib/math/math.svx</code>. Проверены функции <code>math_abs(int) -&gt; long</code>, <code>math_min(long,long)</code>, <code>math_max(long,long)</code> и <code>math_is_even(long)</code>. Абсолютное значение минимального i32 расширяется до i64 до отрицания.</p>
-      <p>Для остальных возможностей смотри <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/backlog.md">актуальный backlog</a>. Полной string/collection/fs/io/network stdlib ещё нет.</p>
-    </section>
-
-    <section id="errors">
-      <h2>Ошибки и диагностика</h2>
-      <p>Семантическая ошибка выводится с путём файла, строкой и столбцом, например <code>main.svx:4:1: error[semantic]</code>. Lexer/parser сообщают первую найденную синтаксическую ошибку и завершаются; восстановление для нескольких syntax errors пока не реализовано.</p>
-      <p>Статический массив при выходе за границы печатает runtime-сообщение с source coordinates и завершает программу с ненулевым кодом. Ошибки OOM в строковом `replace` пока завершают программу через abort.</p>
-    </section>
-
-    <section id="limits">
-      <h2>Что ещё не готово</h2>
-      <ul>
-        <li>SC — экспериментальный прототип, не стабильный production-язык.</li>
-        <li>Нет `sc build/run/test`, package manager, formatter, LSP, debugger или self-hosting.</li>
-        <li>Нет полноценной ownership/memory-safety модели; raw pointers небезопасны.</li>
-        <li>Точные числовые типы пока ограничены скалярными значениями и функциями.</li>
-        <li>Нет namespace imports, generics, enum, Option/Result, closures или methods.</li>
-        <li>Стандартная библиотека содержит только небольшой source-based math-модуль.</li>
-        <li>Арифметическое переполнение вычисляемых значений не проверяется runtime.</li>
-      </ul>
-      <p>Полный список: <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/STATUS.md">STATUS.md</a> и <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/roadmap.md">roadmap</a>.</p>
-    </section>
-
-    <footer>SC documentation · автоматическая публикация из отдельного репозитория <code>doc</code> · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
+int n = 0;
+while (n &lt; 2) { n += 1; }
+print(n);
+for i in 0..3 { print(i); }
+for j in 1..=2 { print(j); }
+int[] values = [5, 6];
+for value in values { print(value); }
+repeat (2) { print(9); }
+loop {
+    n += 1;
+    if (n == 4) { break; }
+    if (n == 3) { continue; }
+}
+print(n);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>3
+2
+0
+1
+2
+1
+2
+5
+6
+9
+9
+4</code></pre>
+<p><code>for i in a..b</code> — от <code>a</code> до <code>b - 1</code>, <code>a..=b</code> — включительно. <code>repeat (n)</code> повторяет блок <code>n</code> раз. <code>loop</code> — бесконечный цикл, выход через <code>break</code> или <code>return</code>. Условие — <code>bool</code> или целое (ноль — ложь). Код после <code>return</code>/<code>break</code>/<code>continue</code> в том же блоке — ошибка компиляции.</p>
+</section>
+<section id="s6">
+<h2>6. Функции</h2>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>fn int square(int x) { return x * x; }
+fn void show(int x) { print(x); }
+fn bool even(int n);                 // объявление без тела
+fn bool odd(int n) { if (n == 0) { return false; } return even(n - 1); }
+fn bool even(int n) { if (n == 0) { return true; } return odd(n - 1); }
+show(square(5));
+print(even(10));</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>25
+1</code></pre>
+<p>Функцию можно вызвать до её определения. Объявление без тела должно совпадать с определением по типам. Функция с результатом должна возвращать значение на всех путях (бесконечный <code>loop</code> без <code>break</code> тоже считается). Вложенные функции, перегрузка и имена встроенных функций (<code>max</code>, <code>sqrt</code> …) как имена своих функций запрещены. Аргументы разделяются запятыми.</p>
+</section>
+<section id="s7">
+<h2>7. Структуры</h2>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>struct Inner { int x = 0; }
+struct Pair {
+    int a = 1;
+    Inner inner;
+}
+fn int sum(Pair p) { p.a = 100; return p.a + p.inner.x; }
+Pair value = { a = 2; inner = { x = 0; }; };
+value.inner.x = 5;
+value.a += 1;
+print(sum(value));
+print(value.a);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>105
+3</code></pre>
+<p><code>struct Имя { поля }</code> объявляет структуру; поля могут иметь значения по умолчанию. Переменная-структура: <code>Имя x;</code> или с инициализатором <code>Имя x = { поле = значение; };</code>. Параметр-структура: <code>fn int f(Имя x)</code>. В функцию структура передаётся копией. Возвращать структуру из функции пока нельзя. Рекурсивная структура (поле своего же типа) запрещена.</p>
+</section>
+<section id="s8">
+<h2>8. Массивы</h2>
+<p>Статический массив имеет фиксированную длину; индекс проверяется (константный — при компиляции, остальные — при выполнении).</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>int[] a = [1, 2, 3];
+a[0] = 10;
+a[1] += 5;
+print(a[0] + a[1] + a[2]);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>20</code></pre>
+<p>Динамический массив создаётся <code>new T[n]</code>: длина <code>n</code>, элементы равны нулю. Методы: <code>push(x)</code>, <code>pop()</code> (возвращает элемент, у пустого — 0), <code>resize(n)</code>, <code>len()</code>, <code>cap()</code>.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>ptr v = new int[2];
+v[0] = 4;
+v.push(7);
+print(v.len());
+print(v.pop());
+print(v[0]);
+drop v;</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>3
+7
+4</code></pre>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>ptr v = new int[2];
+print(v[0]);
+fn int g(ptr p) { return 1; }
+print(g(v));</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>пока нельзя передать в функцию</code></pre>
+</section>
+<section id="s9">
+<h2>9. Указатели и <code>null</code></h2>
+<p><code>&amp;x</code> — адрес переменной, <code>*p</code> — значение по адресу, <code>null</code> — пустой указатель (допустим только для <code>ptr</code>). Разыменование <code>null</code> — ошибка выполнения <code>null pointer dereference</code>. Указатели сравниваются только через <code>==</code> и <code>!=</code>.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>int x = 5;
+ptr p = &amp;x;
+*p = 9;
+print(x);
+ptr q = null;
+if (q == null) { print(1); }</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>9
+1</code></pre>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>int a = null;</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>null и указатели допустимы только для типа ptr</code></pre>
+</section>
+<section id="s10">
+<h2>10. <code>defer</code> и <code>drop</code></h2>
+<p><code>defer операция;</code> выполняет операцию при выходе из текущего блока, в обратном порядке. При <code>return</code> сначала вычисляется значение, затем выполняются <code>defer</code>. Внутри <code>defer</code> нельзя объявлять переменные и делать переходы.</p>
+<p><code>drop x;</code> освобождает динамический массив или закрывает файл. После <code>drop</code> имя использовать нельзя, повторный <code>drop</code> — ошибка компиляции, как и <code>drop</code> внешней переменной внутри цикла или функции.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>fn int f(int x) {
+    ptr v = new int[2];
+    defer drop v;
+    defer print(1);
+    v[0] = x;
+    return v[0] + 1;
+}
+print(f(4));</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>1
+5</code></pre>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>ptr v = new int[2];
+drop v;
+print(v[0]);</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>&#x27;v&#x27; используется после drop (строка 2)</code></pre>
+<p><code>del p;</code> освобождает память по указателю без проверок (ручной режим).</p>
+</section>
+<section id="s11">
+<h2>11. Строки</h2>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>string s = &quot;hello&quot;;
+print(s);
+print(len(s));
+print(s == &quot;hello&quot;);
+print(s != &quot;x&quot;);
+ptr r = replace(&quot;a-b&quot;, &quot;-&quot;, &quot;+&quot;);
+print(r);
+print(str(42));</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>hello
+5
+1
+1
+a+b
+42</code></pre>
+<p><code>len(s)</code> — длина строки, <code>s == t</code> — равны ли строки, <code>replace(s, a, b)</code> — копия <code>s</code> с заменой <code>a</code> на <code>b</code>, <code>str(x)</code> — число в строку. Строки сравниваются через <code>==</code> и <code>!=</code> (по содержимому). Сложение <code>+</code> пока не поддерживается.</p>
+</section>
+<section id="s12">
+<h2>12. Ввод</h2>
+<p><code>input_int(&quot;подсказка&quot;)</code> читает число, <code>input_str(&quot;подсказка&quot;)</code> — строку.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>int n = input_int(&quot;&quot;);
+string name = input_str(&quot;&quot;);
+print(n * 2);
+print(name);</code></pre>
+<p class="label">Ввод</p>
+<pre class="example-stdin"><code>21
+SC</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>42
+SC</code></pre>
+</section>
+<section id="s13">
+<h2>13. Файлы</h2>
+<p><code>open(путь, режим)</code> открывает файл (<code>&quot;w&quot;</code>, <code>&quot;r&quot;</code>, <code>&quot;a&quot;</code>; не открылся — ошибка выполнения), <code>write(f, строка)</code> пишет, <code>read(f)</code> читает строку, <code>close(f)</code> или <code>drop f</code> закрывает.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>file out = open(&quot;spec-file.txt&quot;, &quot;w&quot;);
+write(out, &quot;строка&quot;);
+drop out;
+file inp = open(&quot;spec-file.txt&quot;, &quot;r&quot;);
+print(read(inp));
+close(inp);</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>строка</code></pre>
+</section>
+<section id="s14">
+<h2>14. Импорт</h2>
+<p><code>import &quot;путь.svx&quot;;</code> подставляет другой файл (путь относительно текущего). Циклические импорты и отсутствующие файлы — ошибка. Пространств имён нет. Стандартная библиотека: <code>stdlib/math/math.svx</code> (<code>math_abs</code>, <code>math_min</code>, <code>math_max</code>, <code>math_is_even</code>).</p>
+</section>
+<section id="s15">
+<h2>15. Встроенные функции</h2>
+<p><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>max(a, b)</code>, <code>min(a, b)</code>, <code>floor</code> (вниз), <code>ceil</code> (вверх), <code>round</code> (округление), <code>rand()</code> (случайное целое), <code>len</code>, <code>replace</code>, <code>str</code>. Эти имена зарезервированы: так нельзя назвать свою функцию или переменную.</p>
+<p class="label">Программа</p>
+<pre class="example-sc"><code>print(max(3, 7));
+print(min(3, 7));
+print(abs(-4));
+print(floor(2.7));
+print(ceil(2.1));
+print(round(2.5));
+print(sqrt(16.0));</code></pre>
+<p class="label">Вывод</p>
+<pre class="example-text"><code>7
+3
+4
+2.000000
+3.000000
+3.000000
+4.000000</code></pre>
+</section>
+<section id="s16">
+<h2>16. Удалённые слова</h2>
+<p>У каждого действия одно слово. Старые синонимы удалены; компилятор сообщает позицию и подсказывает новое слово.</p>
+<table><thead><tr><th>Было</th><th>Пишите</th></tr></thead><tbody><tr><td><code>fucn</code></td><td><code>fn</code></td></tr><tr><td><code>rev</code></td><td><code>return</code></td></tr><tr><td><code>slov</code></td><td><code>print</code></td></tr><tr><td><code>eles</code> / <code>sele</code></td><td><code>if</code> / <code>else</code></td></tr><tr><td><code>brk</code> / <code>cont</code></td><td><code>break</code> / <code>continue</code></td></tr><tr><td><code>rox</code> / <code>rox64</code></td><td><code>int</code> / <code>long</code></td></tr><tr><td><code>dor</code></td><td><code>float</code></td></tr><tr><td><code>cos</code></td><td><code>string</code></td></tr><tr><td><code>bue</code></td><td><code>bool</code></td></tr><tr><td><code>chr</code></td><td><code>char</code></td></tr><tr><td><code>cop f(x)</code></td><td><code>f(x)</code></td></tr><tr><td><code>cert usy (c)</code></td><td><code>while (c)</code></td></tr><tr><td><code>svi T lor x = v;</code></td><td><code>T x = v;</code></td></tr><tr><td><code>svi tip P lor x;</code></td><td><code>P x;</code></td></tr><tr><td><code>tip</code></td><td><code>struct</code></td></tr><tr><td><code>nw</code></td><td><code>new</code></td></tr><tr><td><code>cert ceh (n)</code></td><td><code>repeat (n)</code></td></tr><tr><td><code>imp</code></td><td><code>import</code></td></tr><tr><td><code>atk</code> / <code>zap</code> / <code>pro</code> / <code>zak</code></td><td><code>open</code> / <code>write</code> / <code>read</code> / <code>close</code></td></tr><tr><td><code>vd</code> / <code>vv_s</code></td><td><code>input_int</code> / <code>input_str</code></td></tr><tr><td><code>flo</code> / <code>cel</code> / <code>ron</code> / <code>ran</code></td><td><code>floor</code> / <code>ceil</code> / <code>round</code> / <code>rand</code></td></tr><tr><td><code>ar(s)</code></td><td><code>len(s)</code></td></tr><tr><td><code>ser(a, b)</code></td><td><code>a == b</code></td></tr><tr><td><code>rep(s, a, b)</code></td><td><code>replace(s, a, b)</code></td></tr></tbody></table>
+<p class="label">Не компилируется</p>
+<pre class="example-sc-error"><code>slov(1);</code></pre>
+<p class="label">Ошибка (часть сообщения)</p>
+<pre class="example-text"><code>слово &#x27;slov&#x27; удалено: пишите &#x27;print&#x27;</code></pre>
+</section>
+<section id="s17">
+<h2>17. Известные ограничения</h2>
+<ul><li>Нет обобщённых типов, перечислений, <code>Option</code>/<code>Result</code>, сопоставления с образцом, замыканий, интерфейсов, пространств имён, многопоточности, FFI.</li><li>Структуры нельзя возвращать из функций; динамические массивы нельзя передавать в функции и возвращать.</li><li>Строки из <code>str()</code>, ввода и <code>replace</code> пока не освобождаются (утечка, не порча памяти).</li><li>Сырой <code>ptr</code> не знает длину: индекс <code>p[i]</code> проверяется только на <code>null</code>.</li><li>Модель памяти (автоматическое освобождение и проверки владения) ещё не сделана; <code>del</code> — ручной режим без проверок.</li><li>Строки: нет <code>+</code>, <code>==</code>, работы с Unicode.</li></ul>
+</section>
+    <footer>SC documentation · страница собрана из <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/spec.md">docs/spec.md</a> (коммит <code>1f4c99e</code>) · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
   </main>
 </div>
 </body>
