@@ -36,7 +36,7 @@
       <span class="badge">Экспериментальный компилятор · версия 0.3.0</span>
       <h1>SC</h1>
       <p>Краткая документация по реально реализованному подмножеству языка SC. Компилятор написан на C++ и генерирует LLVM IR. Проект развивается; этот сайт не описывает незавершённые функции как готовые.</p>
-      <p><a href="https://github.com/winchestersdc79-hub/sviroxk-compiler">Исходный код компилятора на GitHub ↗</a></p>
+      <p><a href="https://github.com/sviroxk/sviroxk-compiler">Исходный код компилятора на GitHub ↗</a></p>
       <p class="note">SC пока прототип. Не используйте его для критичных или production-систем: типизированные массивы, память, диагностика и стандартная библиотека ещё имеют ограничения.</p>
     </header>
 
@@ -105,7 +105,7 @@ announce();</code></pre>
     <section id="control">
       <h2>Условия, логика и циклы</h2>
       <pre><code>int count = 0;
-cert usy (count &lt; 3) {
+while (count &lt; 3) {
     count = count + 1;
 }
 
@@ -114,12 +114,12 @@ if (count &gt;= 3 &amp;&amp; !(count == 4)) {
 } else {
     print("иначе");
 }</code></pre>
-      <p>Доступны `&lt;`, `&gt;`, `&lt;=`, `&gt;=`, `==`, `!=`, `&&`, `||`, `!`, `+ - * / %`. У `&&` и `||` short-circuit semantics. Новые циклы пока имеют legacy-запись `cert usy (...)` и `cert ceh (...)`; `for ... in range` не реализован.</p>
+      <p>Доступны `&lt;`, `&gt;`, `&lt;=`, `&gt;=`, `==`, `!=`, `&&`, `||`, `!`, `+ - * / %`. У `&&` и `||` short-circuit semantics. Циклы: `while (условие)`, `repeat (n)` — повторить n раз, `for i in 0..n`.</p>
     </section>
 
     <section id="arrays">
       <h2>Массивы</h2>
-      <pre><code>svi rox[] lor values = [10, 20, 30];
+      <pre><code>int[] values = [10, 20, 30];
 print(values[0]);
 values[1] = 42;
 print(values[1]);</code></pre>
@@ -128,20 +128,20 @@ print(values[1]);</code></pre>
 
     <section id="structs">
       <h2>Структуры</h2>
-      <pre><code>tip Player {
-    rox health = 100;
-    rox speed = 5;
+      <pre><code>struct Player {
+    int health = 100;
+    int speed = 5;
 }
 
-svi tip Player lor hero;
+Player hero;
 hero.health = 80;
-slov(hero.health);</code></pre>
-      <p>Поддерживается legacy-объявление структуры с полями и значениями по умолчанию, создание экземпляра и доступ к полям через точку. Точные типы в aggregate storage пока не поддержаны.</p>
+print(hero.health);</code></pre>
+      <p>Поддерживается объявление структуры с полями и значениями по умолчанию, создание экземпляра и доступ к полям через точку. Точные типы в aggregate storage пока не поддержаны.</p>
     </section>
 
     <section id="modules">
       <h2>Импорты</h2>
-      <pre><code>imp "../stdlib/math/math.svx";
+      <pre><code>import "../stdlib/math/math.svx";
 let magnitude: long = math_abs(-17);
 print(magnitude);</code></pre>
       <p>Пути разрешаются относительно импортирующего файла; вложенные импорты допустимы, повторные файлы загружаются один раз. Циклы и отсутствующие файлы дают ошибку. `use`, namespaces, `pub`, selective imports и отдельная компиляция модулей пока отсутствуют.</p>
@@ -150,13 +150,13 @@ print(magnitude);</code></pre>
     <section id="stdlib">
       <h2>Библиотека</h2>
       <p>Начальный модуль находится в <code>stdlib/math/math.svx</code>. Проверены функции <code>math_abs(int) -&gt; long</code>, <code>math_min(long,long)</code>, <code>math_max(long,long)</code> и <code>math_is_even(long)</code>. Абсолютное значение минимального i32 расширяется до i64 до отрицания.</p>
-      <p>Для остальных возможностей смотри <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/docs/backlog.md">актуальный backlog</a>. Полной string/collection/fs/io/network stdlib ещё нет.</p>
+      <p>Для остальных возможностей смотри <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/backlog.md">актуальный backlog</a>. Полной string/collection/fs/io/network stdlib ещё нет.</p>
     </section>
 
     <section id="errors">
       <h2>Ошибки и диагностика</h2>
       <p>Семантическая ошибка выводится с путём файла, строкой и столбцом, например <code>main.svx:4:1: error[semantic]</code>. Lexer/parser сообщают первую найденную синтаксическую ошибку и завершаются; восстановление для нескольких syntax errors пока не реализовано.</p>
-      <p>Статический массив при выходе за границы печатает runtime-сообщение с source coordinates и завершает программу с ненулевым кодом. Ошибки OOM в строковом `rep` пока завершают программу через abort.</p>
+      <p>Статический массив при выходе за границы печатает runtime-сообщение с source coordinates и завершает программу с ненулевым кодом. Ошибки OOM в строковом `replace` пока завершают программу через abort.</p>
     </section>
 
     <section id="limits">
@@ -170,10 +170,10 @@ print(magnitude);</code></pre>
         <li>Стандартная библиотека содержит только небольшой source-based math-модуль.</li>
         <li>Арифметическое переполнение вычисляемых значений не проверяется runtime.</li>
       </ul>
-      <p>Полный список: <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/STATUS.md">STATUS.md</a> и <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler/blob/main/docs/roadmap.md">roadmap</a>.</p>
+      <p>Полный список: <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/STATUS.md">STATUS.md</a> и <a href="https://github.com/sviroxk/sviroxk-compiler/blob/main/docs/roadmap.md">roadmap</a>.</p>
     </section>
 
-    <footer>SC documentation · автоматическая публикация из отдельного репозитория <code>doc</code> · <a href="https://github.com/winchestersdc79-hub/sviroxk-compiler">репозиторий компилятора</a></footer>
+    <footer>SC documentation · автоматическая публикация из отдельного репозитория <code>doc</code> · <a href="https://github.com/sviroxk/sviroxk-compiler">репозиторий компилятора</a></footer>
   </main>
 </div>
 </body>
